@@ -808,10 +808,13 @@ function ApplicationsPageContent() {
 
               {/* Document Manager */}
               <div className="space-y-4 mb-8">
-                <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                  <FileText className="w-4.5 h-4.5 text-emerald-500" />
-                  <span>CV & Dokumen Pendukung</span>
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <FileText className="w-4.5 h-4.5 text-emerald-500" />
+                    <span>CV & Dokumen Pendukung</span>
+                  </h3>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold bg-slate-50 dark:bg-slate-800/40 px-2 py-0.5 rounded-md">Maks 5 MB</span>
+                </div>
                 
                 {/* Upload Form */}
                 <div className="flex items-center gap-2">

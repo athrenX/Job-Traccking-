@@ -104,29 +104,6 @@ export default function ProfilePage() {
               </h3>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{user.email}</p>
             </div>
-
-            {/* Connection status */}
-            <div className="w-full pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-400">Database Engine</span>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold ${
-                  db.isMock
-                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                }`}>
-                  <Database className="w-3.5 h-3.5" />
-                  <span>{db.isMock ? 'Demo Mode (LocalStorage)' : 'Supabase PostgreSQL'}</span>
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-400">Status Akun</span>
-                <span className="inline-flex items-center gap-1 text-emerald-500 font-bold">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Terverifikasi</span>
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Form edit fields Card */}

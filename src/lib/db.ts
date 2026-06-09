@@ -590,11 +590,22 @@ export const db = {
         }
       }
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('interviews')
         .insert({ ...interview, user_id: user?.id, google_event_id: googleEventId })
         .select()
         .single();
+
+      if (error && (error.message.includes('google_event_id') || error.code === '42703')) {
+        // Fallback: try inserting without google_event_id if column doesn't exist in DB
+        const fallbackRes = await supabase
+          .from('interviews')
+          .insert({ ...interview, user_id: user?.id })
+          .select()
+          .single();
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+      }
       return { data, error };
     },
 
@@ -607,10 +618,10 @@ export const db = {
       }
       const supabase = createClient();
 
-      // Fetch the interview first to get the google_event_id
+      // Fetch the interview first using select('*') to prevent failure if google_event_id column is missing
       const { data: interview } = await supabase
         .from('interviews')
-        .select('google_event_id')
+        .select('*')
         .eq('id', id)
         .maybeSingle();
 

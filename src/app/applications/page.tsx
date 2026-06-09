@@ -817,34 +817,39 @@ function ApplicationsPageContent() {
                 </div>
                 
                 {/* Upload Form */}
-                <div className="flex items-center gap-2">
-                  <select
-                    value={uploadType}
-                    onChange={e => setUploadType(e.target.value as any)}
-                    className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none"
-                  >
-                    <option value="CV">CV (PDF)</option>
-                    <option value="Cover Letter">Cover Letter</option>
-                    <option value="Certificate">Sertifikat</option>
-                  </select>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={uploadType}
+                      onChange={e => setUploadType(e.target.value as any)}
+                      className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none"
+                    >
+                      <option value="CV">CV (PDF)</option>
+                      <option value="Cover Letter">Cover Letter</option>
+                      <option value="Certificate">Sertifikat</option>
+                    </select>
 
-                  <label className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition">
-                    {uploadingFile ? (
-                      <span>Mengunggah...</span>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Unggah File</span>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileUpload}
-                      disabled={uploadingFile}
-                      className="hidden"
-                    />
-                  </label>
+                    <label className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition">
+                      {uploadingFile ? (
+                        <span>Mengunggah...</span>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Unggah File</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileUpload}
+                        disabled={uploadingFile}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[10px] text-amber-600 dark:text-amber-500 font-medium flex items-center gap-1">
+                    ⚠️ Ukuran file maksimal adalah 5 MB (.pdf, .doc, .docx)
+                  </p>
                 </div>
 
                 {/* Uploaded Documents List */}
@@ -1171,7 +1176,7 @@ function ApplicationsPageContent() {
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">UNGGAH DOKUMEN (MAKS 5MB)</label>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">UNGGAH DOKUMEN</label>
                     <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold cursor-pointer transition text-slate-500 dark:text-slate-400 truncate">
                       <Upload className="w-4 h-4 text-blue-500 shrink-0" />
                       <span className="truncate">{formFile ? formFile.name : 'Pilih file PDF/Word...'}</span>
@@ -1191,6 +1196,9 @@ function ApplicationsPageContent() {
                         className="hidden"
                       />
                     </label>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 block font-medium">
+                      ⚠️ Ukuran file maksimal adalah 5 MB (.pdf, .doc, .docx)
+                    </span>
                   </div>
                 </div>
 

@@ -56,9 +56,15 @@ CREATE TABLE IF NOT EXISTS public.companies (
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own companies" ON public.companies;
-CREATE POLICY "Users can manage their own companies" 
-    ON public.companies FOR ALL 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can select their own companies" ON public.companies;
+DROP POLICY IF EXISTS "Users can insert their own companies" ON public.companies;
+DROP POLICY IF EXISTS "Users can update their own companies" ON public.companies;
+DROP POLICY IF EXISTS "Users can delete their own companies" ON public.companies;
+
+CREATE POLICY "Users can select their own companies" ON public.companies FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own companies" ON public.companies FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own companies" ON public.companies FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own companies" ON public.companies FOR DELETE USING (auth.uid() = user_id);
 
 
 -- 3. Applications Table
@@ -82,9 +88,15 @@ CREATE TABLE IF NOT EXISTS public.applications (
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own applications" ON public.applications;
-CREATE POLICY "Users can manage their own applications" 
-    ON public.applications FOR ALL 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can select their own applications" ON public.applications;
+DROP POLICY IF EXISTS "Users can insert their own applications" ON public.applications;
+DROP POLICY IF EXISTS "Users can update their own applications" ON public.applications;
+DROP POLICY IF EXISTS "Users can delete their own applications" ON public.applications;
+
+CREATE POLICY "Users can select their own applications" ON public.applications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own applications" ON public.applications FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own applications" ON public.applications FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own applications" ON public.applications FOR DELETE USING (auth.uid() = user_id);
 
 
 -- 4. Interviews Table
@@ -105,9 +117,15 @@ CREATE TABLE IF NOT EXISTS public.interviews (
 ALTER TABLE public.interviews ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own interviews" ON public.interviews;
-CREATE POLICY "Users can manage their own interviews" 
-    ON public.interviews FOR ALL 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can select their own interviews" ON public.interviews;
+DROP POLICY IF EXISTS "Users can insert their own interviews" ON public.interviews;
+DROP POLICY IF EXISTS "Users can update their own interviews" ON public.interviews;
+DROP POLICY IF EXISTS "Users can delete their own interviews" ON public.interviews;
+
+CREATE POLICY "Users can select their own interviews" ON public.interviews FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own interviews" ON public.interviews FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own interviews" ON public.interviews FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own interviews" ON public.interviews FOR DELETE USING (auth.uid() = user_id);
 
 
 -- 5. Documents Table
@@ -126,9 +144,15 @@ CREATE TABLE IF NOT EXISTS public.documents (
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own documents" ON public.documents;
-CREATE POLICY "Users can manage their own documents" 
-    ON public.documents FOR ALL 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can select their own documents" ON public.documents;
+DROP POLICY IF EXISTS "Users can insert their own documents" ON public.documents;
+DROP POLICY IF EXISTS "Users can update their own documents" ON public.documents;
+DROP POLICY IF EXISTS "Users can delete their own documents" ON public.documents;
+
+CREATE POLICY "Users can select their own documents" ON public.documents FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own documents" ON public.documents FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own documents" ON public.documents FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own documents" ON public.documents FOR DELETE USING (auth.uid() = user_id);
 
 
 -- 6. Recruitment Logs (Timeline logs)
@@ -187,3 +211,29 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_application_status_change
     AFTER INSERT OR UPDATE ON public.applications
     FOR EACH ROW EXECUTE FUNCTION public.handle_application_status_change();
+
+
+-- 7. Storage Bucket configuration for CV and Documents
+-- Create bucket if not exists
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('recruitment-documents', 'recruitment-documents', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage object policies for recruitment-documents bucket
+DROP POLICY IF EXISTS "Authenticated users can upload documents" ON storage.objects;
+CREATE POLICY "Authenticated users can upload documents"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'recruitment-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "Authenticated users can view their own documents" ON storage.objects;
+CREATE POLICY "Authenticated users can view their own documents"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (bucket_id = 'recruitment-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "Authenticated users can delete their own documents" ON storage.objects;
+CREATE POLICY "Authenticated users can delete their own documents"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'recruitment-documents' AND (storage.foldername(name))[1] = auth.uid()::text);

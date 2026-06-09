@@ -105,7 +105,10 @@ export default function LoginPage() {
           )}
 
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Mode Tampilan Gelap:</span>
+            <div className="flex items-center gap-3">
+              <Moon className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-500 fill-blue-500/20' : 'text-slate-400'}`} />
+              <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Mode Gelap</span>
+            </div>
             <button
               onClick={toggleTheme}
               className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}

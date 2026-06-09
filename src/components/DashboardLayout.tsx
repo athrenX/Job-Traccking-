@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-100 dark:border-slate-800/60">
           <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20">
-            <Compass className="w-6 h-6 animate-spin-slow" />
+            <Compass className="w-6 h-6" />
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">
             CareerCompass
@@ -150,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <aside className="relative flex flex-col w-80 max-w-xs bg-white dark:bg-slate-900 h-full shadow-2xl p-6 border-r border-slate-200 dark:border-slate-800 animate-slide-right">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <Compass className="w-6 h-6 text-blue-600 animate-spin-slow" />
+                <Compass className="w-6 h-6 text-blue-600" />
                 <span className="text-lg font-black dark:text-white">CareerCompass</span>
               </div>
               <button

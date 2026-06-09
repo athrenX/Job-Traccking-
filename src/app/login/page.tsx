@@ -34,7 +34,7 @@ export default function LoginPage() {
         <div className="space-y-6 relative z-10 hidden md:block pr-6 border-r border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/30">
-              <Compass className="w-8 h-8 animate-spin-slow" />
+              <Compass className="w-8 h-8" />
             </div>
             <span className="text-2xl font-black tracking-tight text-slate-800 dark:text-white">
               CareerCompass

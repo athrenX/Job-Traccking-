@@ -651,7 +651,7 @@ function ApplicationsPageContent() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-12 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
-            <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4 animate-bounce" />
+            <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4" />
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">Tidak ada lamaran ditemukan</h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mt-1">
               Cobalah untuk mengubah filter pencarian Anda atau tambah lamaran kerja pertama Anda hari ini!
@@ -1036,7 +1036,7 @@ function ApplicationsPageContent() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl shadow-2xl z-50 relative overflow-hidden p-6 md:p-8 animate-scale-up">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-blue-600 animate-pulse" />
+                  <Sparkles className="w-5 h-5 text-blue-600" />
                   <span>{formMode === 'create' ? 'Tambah Lamaran Baru' : 'Edit Detail Lamaran'}</span>
                 </h3>
                 <button

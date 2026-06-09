@@ -116,20 +116,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-400 text-sm hover:text-slate-900 dark:hover:text-white transition duration-200"
           >
             <div className="flex items-center gap-3">
-              {theme === 'light' ? (
-                <>
-                  <Moon className="w-5 h-5 text-slate-400" />
-                  <span>Mode Gelap</span>
-                </>
-              ) : (
-                <>
-                  <Sun className="w-5 h-5 text-yellow-500" />
-                  <span>Mode Terang</span>
-                </>
-              )}
+              <Moon className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-500 fill-blue-500/20' : 'text-slate-400'}`} />
+              <span>Mode Gelap</span>
             </div>
-            <div className={`w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full p-0.5 transition-colors duration-200 relative`}>
-              <div className={`w-4 h-4 bg-white dark:bg-slate-300 rounded-full transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+            <div className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
+              <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
             </div>
           </button>
 
@@ -205,20 +196,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="mt-auto space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-400 text-sm"
+                className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-400 text-sm hover:text-slate-900 dark:hover:text-white transition duration-200"
               >
                 <div className="flex items-center gap-3">
-                  {theme === 'light' ? (
-                    <>
-                      <Moon className="w-5 h-5 text-slate-400" />
-                      <span>Mode Gelap</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sun className="w-5 h-5 text-yellow-500" />
-                      <span>Mode Terang</span>
-                    </>
-                  )}
+                  <Moon className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-500 fill-blue-500/20' : 'text-slate-400'}`} />
+                  <span>Mode Gelap</span>
+                </div>
+                <div className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                  <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
               </button>
 

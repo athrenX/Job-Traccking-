@@ -252,6 +252,10 @@ export const db = {
         .eq('id', user.id)
         .single();
       
+      if (data && !error) {
+        data.email = user.email;
+      }
+      
       return { data, error };
     },
 

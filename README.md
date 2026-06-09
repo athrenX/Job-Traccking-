@@ -1,24 +1,24 @@
-# CareerCompass – Sistem Manajemen Lamaran Kerja & Magang
+# CareerCompass – Job Application & Internship Management System
 
-CareerCompass adalah aplikasi web modern SaaS-dashboard terpusat yang dirancang khusus untuk membantu mahasiswa, fresh graduate, dan pencari kerja mencatat, mengelola, dan memantau seluruh recruitment pipeline mereka secara real-time.
+CareerCompass is a modern centralized SaaS-dashboard web application designed specifically to help students, fresh graduates, and job seekers track, manage, and monitor their entire recruitment pipeline in real-time.
 
-Aplikasi ini siap digunakan sebagai portfolio kelas dunia (Software Engineer / Apple Developer Academy) dengan integrasi Next.js 15, Tailwind CSS v4, dan Supabase PostgreSQL.
-
----
-
-## 🚀 Fitur Utama
-
-- **Dashboard Karir Interaktif**: Informasi ringkasan total lamaran, status rekrutmen aktif, charts visual sebaran status, serta info wawancara terdekat.
-- **Manajemen Lamaran (CRUD)**: Catat posisi, jenis pekerjaan (Internship, Full Time, Part Time, Contract), lokasi, nominal gaji, link lowongan, dan catatan penting.
-- **Sistem Status Real-time & Visual Timeline**: Pelacakan status lamaran mulai dari *Applied*, *Screening*, *Technical Test*, *Interview*, *HR Interview*, *Offered*, *Accepted*, hingga *Rejected*.
-- **Kalender Agenda Interview**: Kelola jadwal, tanggal rapat, info tautan wawancara daring (Google Meet / Zoom), serta pengingat visual.
-- **Penyimpanan Dokumen Terpadu**: Unggah CV (PDF), Cover Letter, dan Sertifikat pendukung langsung ke awan (Supabase Storage) dengan limit ukuran file 5MB.
-- **Ekspor Laporan**: Unduh laporan lamaran Anda kapan saja dalam format **PDF** dan **Excel**.
-- **Mode Demo Mandiri (Mock Mode)**: Kemampuan lari lokal instan menggunakan HTML5 LocalStorage jika kunci API Supabase belum dikonfigurasi.
+This application is ready to be used as a world-class portfolio (Software Engineer / Apple Developer Academy) with integrations of Next.js 15, Tailwind CSS v4, and Supabase PostgreSQL.
 
 ---
 
-## 🛠️ Tech Stack & Arsitektur
+## 🚀 Key Features
+
+- **Interactive Career Dashboard**: Summary information of total applications, active recruitment statuses, visual status distribution charts, and upcoming interview schedules.
+- **Application Management (CRUD)**: Log position, job type (Internship, Full Time, Part Time, Contract), location, salary range, job link, and important notes.
+- **Real-time Status System & Visual Timeline**: Track application status starting from *Applied*, *Screening*, *Technical Test*, *Interview*, *HR Interview*, *Offered*, *Accepted*, to *Rejected*.
+- **Interview Schedule Calendar**: Manage schedules, meeting dates, online interview links (Google Meet / Zoom), and visual reminders.
+- **Integrated Document Storage**: Upload CV (PDF), Cover Letters, and supporting certificates directly to the cloud (Supabase Storage) with a 5MB file size limit.
+- **Export Reports**: Download your application reports anytime in **PDF** and **Excel** formats.
+- **Standalone Demo Mode (Mock Mode)**: Ability to run locally instantly using HTML5 LocalStorage if Supabase API keys are not configured.
+
+---
+
+## 🛠️ Tech Stack & Architecture
 
 - **Frontend**: React, Next.js 15 (App Router), TypeScript, Tailwind CSS v4, Lucide Icons.
 - **Backend / BaaS**: Next.js Server Actions & Supabase.
@@ -103,7 +103,7 @@ erDiagram
 
 ---
 
-## 🏛️ Diagram Arsitektur Sistem
+## 🏛️ System Architecture Diagram
 
 ```mermaid
 graph TD
@@ -116,49 +116,49 @@ graph TD
 
 ---
 
-## 📝 Panduan API & Database Setup
+## 📝 API & Database Setup Guide
 
-Seluruh query tabel, trigger profil otomatis ketika registrasi OAuth, dan pencatatan timeline history otomatis ketika mengubah status lamaran telah diprogram dalam SQL terpadu.
+All table queries, automatic profile creation triggers upon OAuth registration, and automatic timeline logs upon status changes have been consolidated into a single unified SQL script.
 
-Buka panel **Supabase SQL Editor**, salin dan jalankan script schema berikut:
+Open the **Supabase SQL Editor** panel, copy, and run the following schema script:
 👉 [schema.sql](file:///d:/PROJECT/job%20Application%20Tracker/supabase/schema.sql)
 
 ---
 
-## ⚙️ Instalasi Lokal
+## ⚙️ Local Installation
 
-### 1. Kloning Workspace & Pasang Dependensi
+### 1. Clone Workspace & Install Dependencies
 ```bash
-# Pastikan Anda berada pada folder root project
+# Make sure you are in the project root folder
 npm install
 ```
 
-### 2. Konfigurasi Environment Variables
-Salin file `.env.example` menjadi `.env.local` dan lengkapi kredensial Supabase Anda:
+### 2. Configure Environment Variables
+Copy the `.env.example` file to `.env.local` and fill in your Supabase credentials:
 ```bash
 cp .env.example .env.local
 ```
 
-Isi file `.env.local`:
+Fill in the `.env.local` file:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
-> 💡 *Jika Anda membiarkan kunci bernilai placeholder di atas, aplikasi secara cerdas akan otomatis mengaktifkan **Demo Mode** berbasis LocalStorage agar Anda dapat melakukan demo instan tanpa database.*
+> 💡 *If you leave the keys as placeholder values above, the application will intelligently and automatically activate **Demo Mode** based on LocalStorage so you can do an instant demo without a database.*
 
-### 3. Jalankan Server Development
+### 3. Run Development Server
 ```bash
 npm run dev
 ```
-Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+Open [http://localhost:3050](http://localhost:3050) in your browser.
 
 ---
 
-## 🚀 Panduan Deployment ke Vercel
+## 🚀 Deployment to Vercel Guide
 
-1. Buat repositori baru di GitHub dan lakukan push code.
-2. Masuk ke **Vercel** dan buat project baru dengan mengimpor repositori Anda.
-3. Pada bagian **Environment Variables** di dashboard Vercel, tambahkan variabel:
+1. Create a new repository on GitHub and push the code.
+2. Login to **Vercel** and create a new project by importing your repository.
+3. Under the **Environment Variables** section in the Vercel dashboard, add the variables:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. Klik **Deploy** dan aplikasi CareerCompass Anda siap diakses secara online!
+4. Click **Deploy** and your CareerCompass application is ready to be accessed online!

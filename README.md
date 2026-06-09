@@ -154,6 +154,7 @@ Open [http://localhost:3050](http://localhost:3050) in your browser.
 
 ---
 
+
 ## 🚀 Deployment to Vercel Guide
 
 1. Create a new repository on GitHub and push the code.
@@ -162,3 +163,29 @@ Open [http://localhost:3050](http://localhost:3050) in your browser.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Click **Deploy** and your CareerCompass application is ready to be accessed online!
+
+## Screenshots
+
+Dashboard
+<img width="1832" height="895" alt="image" src="https://github.com/user-attachments/assets/cb39506a-d988-425a-8c68-9e6386d434dc" />
+
+<img width="1809" height="889" alt="image" src="https://github.com/user-attachments/assets/267d269e-012f-4472-8b9a-d51b953259eb" />
+
+
+Application Management
+
+<img width="1803" height="891" alt="image" src="https://github.com/user-attachments/assets/f657e46d-ff4d-4708-ad25-e52e1f7ecf6f" />
+
+Interview Calendar
+<img width="1735" height="874" alt="image" src="https://github.com/user-attachments/assets/2ed255ce-349d-4e96-91f1-5c8296bdcee8" />
+
+Analytics
+
+<img width="1781" height="877" alt="image" src="https://github.com/user-attachments/assets/a05e4deb-b26d-4716-8a65-b34b39c4d98b" />
+<img width="1732" height="886" alt="image" src="https://github.com/user-attachments/assets/f38682ad-ef5b-4ee3-aa23-9fe6107819b0" />
+
+Dark Mode
+<img width="1772" height="902" alt="image" src="https://github.com/user-attachments/assets/597bea4e-30b3-4279-833a-26673e3ff1c1" />
+<img width="1792" height="866" alt="image" src="https://github.com/user-attachments/assets/2b385bca-724c-47c5-9288-be7cb0100419" />
+
+

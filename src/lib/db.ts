@@ -62,6 +62,14 @@ const isMockMode = () => {
   return !url || url.includes('your-supabase') || url === '';
 };
 
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
+
 // --- MOCK STORAGE IMPLEMENTATION ---
 const getLocalStorageData = <T>(key: string, defaultVal: T): T => {
   if (typeof window === 'undefined') return defaultVal;
@@ -558,9 +566,9 @@ export const db = {
       const companyName = appData?.company?.name || 'Perusahaan';
       const position = appData?.position || 'Posisi';
 
-      // Check if user has Google session token
+      // Check if user has Google session token (cookie first for client persistence, session as fallback)
       const { data: { session } } = await supabase.auth.getSession();
-      const providerToken = session?.provider_token;
+      const providerToken = getCookie('google_provider_token') || session?.provider_token;
       
       let googleEventId = null;
       if (providerToken) {
@@ -627,7 +635,7 @@ export const db = {
 
       if (interview?.google_event_id) {
         const { data: { session } } = await supabase.auth.getSession();
-        const providerToken = session?.provider_token;
+        const providerToken = getCookie('google_provider_token') || session?.provider_token;
         if (providerToken) {
           try {
             await fetch('/api/calendar', {

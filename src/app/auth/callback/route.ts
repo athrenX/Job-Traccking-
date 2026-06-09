@@ -9,9 +9,18 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data?.session) {
+      const response = NextResponse.redirect(`${origin}${next}`);
+      if (data.session.provider_token) {
+        response.cookies.set('google_provider_token', data.session.provider_token, {
+          path: '/',
+          maxAge: 60 * 60, // 1 hour
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+        });
+      }
+      return response;
     }
   }
 

@@ -1,5 +1,17 @@
 # CareerCompass – Job Application & Internship Management System
 
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Portfolio Project](https://img.shields.io/badge/Portfolio-Software%20Engineer-blue)
+
+[![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge)](https://job-application-tracker-gamma-one.vercel.app)
+
+
+
 CareerCompass is a modern centralized SaaS-dashboard web application designed specifically to help students, fresh graduates, and job seekers track, manage, and monitor their entire recruitment pipeline in real-time.
 
 This application is ready to be used as a world-class portfolio (Software Engineer / Apple Developer Academy) with integrations of Next.js 15, Tailwind CSS v4, and Supabase PostgreSQL.

@@ -118,6 +118,19 @@ function ApplicationsPageContent() {
     }
   };
 
+  const formatRupiah = (value: string) => {
+    const cleanNumber = value.replace(/\D/g, '');
+    if (!cleanNumber) return '';
+    return 'Rp ' + new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Number(cleanNumber));
+  };
+
+  const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSalaryRange(formatRupiah(e.target.value));
+  };
+
   // Add application helper
   const openCreateModal = () => {
     setFormMode('create');
@@ -1124,7 +1137,7 @@ function ApplicationsPageContent() {
                       type="text"
                       placeholder="Contoh: Rp 8.000.000"
                       value={salaryRange}
-                      onChange={e => setSalaryRange(e.target.value)}
+                      onChange={handleSalaryChange}
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
                     />
                   </div>

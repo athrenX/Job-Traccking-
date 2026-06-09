@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { companyName, position, notes, action } = await request.json();
+    const { companyName, position, notes, action, history, message } = await request.json();
 
     if (!companyName || !position || !action) {
       return NextResponse.json(
@@ -19,42 +19,54 @@ export async function POST(request: Request) {
       );
     }
 
-    let prompt = '';
-    if (action === 'cover-letter') {
-      prompt = `Buatkan surat lamaran kerja (Cover Letter) yang profesional, persuasif, dan dipersonalisasi dalam Bahasa Indonesia untuk posisi "${position}" di perusahaan "${companyName}". ${
-        notes ? `Gunakan catatan tambahan berikut sebagai konteks kualifikasi atau latar belakang: "${notes}". ` : ''
-      }Format surat harus memiliki struktur yang rapi (Tanggal, Kepada Yth., Salam Pembuka, Paragraf Pembuka, Paragraf Isi/Kualifikasi, Paragraf Penutup, dan Salam Penutup). Tulis dengan gaya bahasa yang santun, profesional, dan tunjukkan antusiasme tinggi untuk posisi tersebut.`;
-    } else if (action === 'interview') {
-      prompt = `Berikan panduan persiapan interview untuk posisi "${position}" di perusahaan "${companyName}" dalam Bahasa Indonesia. 
+    // Build the contents array. If it's a follow-up chat, we construct the conversation history.
+    let contents = [];
+
+    if (action === 'chat' && history && history.length > 0) {
+      contents = [...history];
+      if (message) {
+        contents.push({
+          role: 'user',
+          parts: [{ text: message }]
+        });
+      }
+    } else {
+      let prompt = '';
+      if (action === 'cover-letter') {
+        prompt = `Buatkan surat lamaran kerja (Cover Letter) yang profesional, persuasif, dan dipersonalisasi dalam Bahasa Indonesia untuk posisi "${position}" di perusahaan "${companyName}". ${
+          notes ? `Gunakan catatan tambahan berikut sebagai konteks kualifikasi atau latar belakang: "${notes}". ` : ''
+        }Format surat harus memiliki struktur yang rapi (Tanggal, Kepada Yth., Salam Pembuka, Paragraf Pembuka, Paragraf Isi/Kualifikasi, Paragraf Penutup, dan Salam Penutup). Tulis dengan gaya bahasa yang santun, profesional, dan tunjukkan antusiasme tinggi untuk posisi tersebut.`;
+      } else if (action === 'interview') {
+        prompt = `Berikan panduan persiapan interview untuk posisi "${position}" di perusahaan "${companyName}" dalam Bahasa Indonesia. 
 Sajikan konten dalam format berikut:
 1. **Prediksi Pertanyaan & Tips Menjawab**: Berikan 4-5 pertanyaan wawancara (perpaduan pertanyaan umum, perilaku/behavioral, dan teknis relevan) yang kemungkinan besar akan ditanyakan, beserta poin-poin tips ringkas cara menjawabnya secara efektif.
 2. **Rekomendasi Persiapan**: Berikan 2-3 tips persiapan spesifik mengenai jenis industri atau keahlian yang perlu dipelajari untuk posisi ini.
 Gunakan markdown yang rapi dengan heading, list, dan cetak tebal (bold) agar mudah dibaca oleh pelamar kerja.`;
-    } else {
-      return NextResponse.json(
-        { error: 'Invalid action parameter. Must be "cover-letter" or "interview".' },
-        { status: 400 }
-      );
+      } else {
+        return NextResponse.json(
+          { error: 'Invalid action parameter. Must be "cover-letter", "interview", or "chat".' },
+          { status: 400 }
+        );
+      }
+
+      contents = [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ];
     }
 
-    // Call Google Gemini API
+    // Call Google Gemini API (using gemini-1.5-flash for reliability and lower latency)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
+          contents,
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 2048,

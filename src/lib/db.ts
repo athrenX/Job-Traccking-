@@ -37,6 +37,7 @@ export interface Interview {
   type: string;
   notes?: string;
   location_link?: string;
+  google_event_id?: string;
 }
 
 export interface Document {
@@ -208,6 +209,11 @@ export const db = {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          scopes: 'https://www.googleapis.com/auth/calendar.events',
         },
       });
     },
@@ -546,9 +552,47 @@ export const db = {
       }
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+
+      // Retrieve application details for Google Calendar context
+      const { data: appData } = await db.applications.getById(interview.application_id);
+      const companyName = appData?.company?.name || 'Perusahaan';
+      const position = appData?.position || 'Posisi';
+
+      // Check if user has Google session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const providerToken = session?.provider_token;
+      
+      let googleEventId = null;
+      if (providerToken) {
+        try {
+          const apiRes = await fetch('/api/calendar', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${providerToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'create',
+              position,
+              companyName,
+              interviewDate: interview.interview_date,
+              type: interview.type,
+              locationLink: interview.location_link,
+              notes: interview.notes,
+            }),
+          });
+          if (apiRes.ok) {
+            const apiData = await apiRes.json();
+            googleEventId = apiData.eventId;
+          }
+        } catch (err) {
+          console.error('Failed to sync to Google Calendar:', err);
+        }
+      }
+
       const { data, error } = await supabase
         .from('interviews')
-        .insert({ ...interview, user_id: user?.id })
+        .insert({ ...interview, user_id: user?.id, google_event_id: googleEventId })
         .select()
         .single();
       return { data, error };
@@ -562,6 +606,36 @@ export const db = {
         return { error: null };
       }
       const supabase = createClient();
+
+      // Fetch the interview first to get the google_event_id
+      const { data: interview } = await supabase
+        .from('interviews')
+        .select('google_event_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (interview?.google_event_id) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const providerToken = session?.provider_token;
+        if (providerToken) {
+          try {
+            await fetch('/api/calendar', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${providerToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                action: 'delete',
+                eventId: interview.google_event_id,
+              }),
+            });
+          } catch (err) {
+            console.error('Failed to delete event from Google Calendar:', err);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('interviews')
         .delete()

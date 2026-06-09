@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS public.interviews (
     type TEXT NOT NULL, -- e.g., 'Technical', 'HR', 'User', 'Coding Test'
     notes TEXT,
     location_link TEXT, -- e.g., Google Meet link or Address
+    google_event_id TEXT, -- Google Calendar Event ID
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );

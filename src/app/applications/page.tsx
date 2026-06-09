@@ -82,8 +82,9 @@ function ApplicationsPageContent() {
 
   // AI Assistant states
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiContent, setAiContent] = useState('');
   const [aiActionType, setAiActionType] = useState<'cover-letter' | 'interview' | null>(null);
+  const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'model'; text: string }>>([]);
+  const [chatInput, setChatInput] = useState('');
 
   // Fetch initial data
   const fetchData = async () => {
@@ -109,7 +110,8 @@ function ApplicationsPageContent() {
   // Open detail panel helper
   const handleViewDetails = async (app: Application) => {
     setSelectedApp(app);
-    setAiContent('');
+    setAiMessages([]);
+    setChatInput('');
     setAiActionType(null);
     setAiLoading(false);
     try {
@@ -362,12 +364,62 @@ function ApplicationsPageContent() {
   };
 
   // AI Assistant Helper
+  const parseBold = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const renderMarkdown = (text: string) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return lines.map((line, lineIdx) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('### ')) {
+        return <h4 key={lineIdx} className="font-extrabold text-xs text-slate-800 dark:text-white mt-3 mb-1.5">{parseBold(trimmed.substring(4))}</h4>;
+      }
+      if (trimmed.startsWith('## ')) {
+        return <h3 key={lineIdx} className="font-black text-sm text-slate-900 dark:text-white mt-4 mb-2 border-b border-slate-200/40 dark:border-slate-800 pb-1">{parseBold(trimmed.substring(3))}</h3>;
+      }
+      if (trimmed.startsWith('# ')) {
+        return <h2 key={lineIdx} className="font-black text-base text-slate-900 dark:text-white mt-5 mb-2.5">{parseBold(trimmed.substring(2))}</h2>;
+      }
+      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+        return (
+          <li key={lineIdx} className="list-disc list-inside ml-2 my-1 text-[11px] text-slate-700 dark:text-slate-350">
+            {parseBold(trimmed.substring(2))}
+          </li>
+        );
+      }
+      const numMatch = trimmed.match(/^(\d+)\.\s(.*)/);
+      if (numMatch) {
+        return (
+          <div key={lineIdx} className="ml-1 my-1 text-[11px] font-semibold text-slate-800 dark:text-slate-200">
+            {numMatch[1]}. {parseBold(numMatch[2])}
+          </div>
+        );
+      }
+      if (trimmed === '') {
+        return <div key={lineIdx} className="h-1.5" />;
+      }
+      return (
+        <p key={lineIdx} className="my-1 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+          {parseBold(line)}
+        </p>
+      );
+    });
+  };
+
   const handleGenerateAIContent = async (action: 'cover-letter' | 'interview') => {
     if (!selectedApp) return;
     try {
       setAiLoading(true);
-      setAiContent('');
       setAiActionType(action);
+      setAiMessages([]);
       
       const response = await fetch('/api/gemini', {
         method: 'POST',
@@ -387,7 +439,54 @@ function ApplicationsPageContent() {
         throw new Error(data.error || 'Terjadi kesalahan saat menghubungi Gemini API');
       }
 
-      setAiContent(data.result);
+      setAiMessages([
+        { role: 'model', text: data.result }
+      ]);
+    } catch (err: any) {
+      showToast('AI Gagal: ' + err.message, 'error');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSendChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedApp || !chatInput.trim() || aiLoading) return;
+    
+    const userMsg = chatInput;
+    setChatInput('');
+    
+    const updatedMessages = [...aiMessages, { role: 'user' as const, text: userMsg }];
+    setAiMessages(updatedMessages);
+    
+    try {
+      setAiLoading(true);
+      const formattedHistory = updatedMessages.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.text }]
+      }));
+      
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: selectedApp.company?.name || 'Perusahaan',
+          position: selectedApp.position,
+          notes: selectedApp.notes || '',
+          action: 'chat',
+          history: formattedHistory.slice(0, -1),
+          message: userMsg
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Terjadi kesalahan saat menghubungi Gemini API');
+      }
+
+      setAiMessages([...updatedMessages, { role: 'model', text: data.result }]);
     } catch (err: any) {
       showToast('AI Gagal: ' + err.message, 'error');
     } finally {
@@ -1094,42 +1193,84 @@ function ApplicationsPageContent() {
 
                   <button
                     onClick={() => handleGenerateAIContent('interview')}
-                    disabled={aiLoading}
+                    disabled={aiLoading || ['Offered', 'Accepted', 'Rejected'].includes(selectedApp.status)}
                     className="flex-1 py-2 px-3 bg-indigo-50 dark:bg-indigo-950/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={['Offered', 'Accepted', 'Rejected'].includes(selectedApp.status) ? "Interview telah selesai dilewati" : ""}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Persiapan Interview</span>
+                    <span>{['Offered', 'Accepted', 'Rejected'].includes(selectedApp.status) ? 'Interview Selesai' : 'Persiapan Interview'}</span>
                   </button>
                 </div>
 
-                {/* AI Result Container */}
-                {aiLoading && (
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-2.5 py-6">
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Menganalisis lamaran dan menulis konten...</p>
+                {/* Chat Stream */}
+                {aiMessages.length > 0 && (
+                  <div className="space-y-3 max-h-96 overflow-y-auto pr-1 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/20">
+                    {aiMessages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex flex-col gap-1 max-w-[85%] ${
+                          msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'
+                        }`}
+                      >
+                        <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400">
+                          {msg.role === 'user' ? 'Anda' : 'AI Assistant'}
+                        </span>
+                        <div
+                          className={`p-3.5 rounded-2xl text-xs shadow-xs relative group ${
+                            msg.role === 'user'
+                              ? 'bg-blue-600 text-white rounded-tr-none'
+                              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-350 border border-slate-200/50 dark:border-slate-800/80 rounded-tl-none'
+                          }`}
+                        >
+                          {msg.role === 'user' ? (
+                            <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                          ) : (
+                            <div className="space-y-1 font-sans">
+                              {renderMarkdown(msg.text)}
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(msg.text);
+                                  showToast('Berhasil disalin ke clipboard!', 'success');
+                                }}
+                                className="mt-2 text-[9px] text-blue-600 dark:text-blue-400 hover:underline font-bold block"
+                              >
+                                Salin Jawaban
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                {!aiLoading && aiContent && (
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 relative group animate-fade-in">
-                    <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">
-                        {aiActionType === 'cover-letter' ? 'Draft Surat Lamaran' : 'Panduan Wawancara'}
-                      </span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(aiContent);
-                          showToast('Berhasil disalin ke clipboard!', 'success');
-                        }}
-                        className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-bold flex items-center gap-1"
-                      >
-                        Salin Teks
-                      </button>
-                    </div>
-                    <div className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed font-sans whitespace-pre-line max-h-72 overflow-y-auto pr-1">
-                      {aiContent}
-                    </div>
+                {/* AI Loading state */}
+                {aiLoading && (
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-2.5 py-6">
+                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Memproses respon AI...</p>
                   </div>
+                )}
+
+                {/* Chat Input for Interactivity */}
+                {aiMessages.length > 0 && (
+                  <form onSubmit={handleSendChatMessage} className="flex gap-2 pt-2">
+                    <input
+                      type="text"
+                      placeholder="Tanyakan lebih lanjut ke AI..."
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      disabled={aiLoading}
+                      className="flex-1 px-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={aiLoading || !chatInput.trim()}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Kirim
+                    </button>
+                  </form>
                 )}
               </div>
             </div>

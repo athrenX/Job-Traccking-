@@ -13,10 +13,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS on profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" 
     ON public.profiles FOR SELECT 
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" 
     ON public.profiles FOR UPDATE 
     USING (auth.uid() = id);
@@ -53,6 +55,7 @@ CREATE TABLE IF NOT EXISTS public.companies (
 -- Enable RLS on companies
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own companies" ON public.companies;
 CREATE POLICY "Users can manage their own companies" 
     ON public.companies FOR ALL 
     USING (auth.uid() = user_id);
@@ -78,6 +81,7 @@ CREATE TABLE IF NOT EXISTS public.applications (
 -- Enable RLS on applications
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own applications" ON public.applications;
 CREATE POLICY "Users can manage their own applications" 
     ON public.applications FOR ALL 
     USING (auth.uid() = user_id);
@@ -100,6 +104,7 @@ CREATE TABLE IF NOT EXISTS public.interviews (
 -- Enable RLS on interviews
 ALTER TABLE public.interviews ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own interviews" ON public.interviews;
 CREATE POLICY "Users can manage their own interviews" 
     ON public.interviews FOR ALL 
     USING (auth.uid() = user_id);
@@ -120,6 +125,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
 -- Enable RLS on documents
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own documents" ON public.documents;
 CREATE POLICY "Users can manage their own documents" 
     ON public.documents FOR ALL 
     USING (auth.uid() = user_id);
@@ -137,6 +143,7 @@ CREATE TABLE IF NOT EXISTS public.recruitment_logs (
 -- Enable RLS on recruitment logs
 ALTER TABLE public.recruitment_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view recruitment logs linked to their applications" ON public.recruitment_logs;
 CREATE POLICY "Users can view recruitment logs linked to their applications" 
     ON public.recruitment_logs FOR SELECT 
     USING (
@@ -147,6 +154,7 @@ CREATE POLICY "Users can view recruitment logs linked to their applications"
         )
     );
 
+DROP POLICY IF EXISTS "Users can insert recruitment logs linked to their applications" ON public.recruitment_logs;
 CREATE POLICY "Users can insert recruitment logs linked to their applications" 
     ON public.recruitment_logs FOR INSERT 
     WITH CHECK (

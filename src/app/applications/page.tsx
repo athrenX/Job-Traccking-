@@ -25,7 +25,9 @@ import {
   History,
   TrendingUp,
   Coins,
-  Briefcase
+  Briefcase,
+  LayoutGrid,
+  Kanban
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { generateGoogleCalendarUrl } from '@/lib/calendarHelper';
@@ -37,6 +39,11 @@ function ApplicationsPageContent() {
   // Core States
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Kanban view & Drag-and-drop states
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
 
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
@@ -260,6 +267,21 @@ function ApplicationsPageContent() {
       if (updated.data) handleViewDetails(updated.data);
     } catch (err: any) {
       showToast('Gagal memperbarui status: ' + err.message, 'error');
+    }
+  };
+
+  const handleMoveStatus = async (appId: string, newStatus: Application['status']) => {
+    try {
+      const res = await db.applications.update(appId, { status: newStatus });
+      if (res.error) throw res.error;
+      showToast('Status lamaran berhasil diperbarui!', 'success');
+      fetchData();
+      if (selectedApp && selectedApp.id === appId) {
+        const updated = await db.applications.getById(appId);
+        if (updated.data) handleViewDetails(updated.data);
+      }
+    } catch (err: any) {
+      showToast('Gagal memindahkan status lamaran: ' + err.message, 'error');
     }
   };
 
@@ -689,7 +711,7 @@ function ApplicationsPageContent() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800/60">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {/* Toggle Favorite */}
               <button
                 onClick={() => setFavoriteOnly(!favoriteOnly)}
@@ -702,6 +724,32 @@ function ApplicationsPageContent() {
                 <Star className={`w-3.5 h-3.5 ${favoriteOnly ? 'fill-amber-500 text-amber-500' : ''}`} />
                 <span>Perusahaan Favorit</span>
               </button>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/40 dark:border-slate-800">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                    viewMode === 'grid'
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>Daftar Kartu</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                    viewMode === 'kanban'
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Kanban className="w-3.5 h-3.5" />
+                  <span>Papan Kanban</span>
+                </button>
+              </div>
             </div>
 
             {/* Sort Toggle */}
@@ -715,94 +763,223 @@ function ApplicationsPageContent() {
           </div>
         </div>
 
-        {/* Listing Grid */}
+        {/* Listing Grid / Kanban Board */}
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-44 bg-slate-200 dark:bg-slate-800 rounded-3xl" />
             ))}
           </div>
-        ) : filteredApps.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredApps.map((app) => (
-              <div
-                key={app.id}
-                onClick={() => handleViewDetails(app)}
-                className={`bg-white dark:bg-slate-900 border ${
-                  selectedApp?.id === app.id
-                    ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/10'
-                    : 'border-slate-200/60 dark:border-slate-800/80'
-                } p-6 rounded-3xl shadow-sm flex flex-col justify-between hover:shadow-md cursor-pointer transition duration-300 relative group`}
+        ) : viewMode === 'grid' ? (
+          filteredApps.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredApps.map((app) => (
+                <div
+                  key={app.id}
+                  onClick={() => handleViewDetails(app)}
+                  className={`bg-white dark:bg-slate-900 border ${
+                    selectedApp?.id === app.id
+                      ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/10'
+                      : 'border-slate-200/60 dark:border-slate-800/80'
+                  } p-6 rounded-3xl shadow-sm flex flex-col justify-between hover:shadow-md cursor-pointer transition duration-300 relative group`}
+                >
+                  <div className="space-y-4">
+                    {/* Top line Info */}
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <h3 className="font-extrabold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition truncate text-base">
+                          {app.position}
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold truncate mt-0.5">
+                          {app.company?.name}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* Star Favorite icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(app.company_id, app.company?.is_favorite || false);
+                          }}
+                          className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-amber-500 transition"
+                        >
+                          <Star className={`w-4 h-4 ${app.company?.is_favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Details badges */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
+                        {app.job_type}
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span>{app.location}</span>
+                      </span>
+                    </div>
+
+                    {app.salary_range && (
+                      <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/5 px-2.5 py-1 rounded-lg w-max">
+                        <Coins className="w-3.5 h-3.5" />
+                        <span>{app.salary_range}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer metrics */}
+                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4 mt-5">
+                    <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Melamar: {new Date(app.applied_date).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
+                    </div>
+                    {getStatusBadge(app.status)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center p-12 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
+              <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4" />
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Tidak ada lamaran ditemukan</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mt-1">
+                Cobalah untuk mengubah filter pencarian Anda atau tambah lamaran kerja pertama Anda hari ini!
+              </p>
+              <button
+                onClick={openCreateModal}
+                className="mt-6 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 transition"
               >
-                <div className="space-y-4">
-                  {/* Top line Info */}
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <h3 className="font-extrabold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition truncate text-base">
-                        {app.position}
-                      </h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold truncate mt-0.5">
-                        {app.company?.name}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* Star Favorite icon */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleFavorite(app.company_id, app.company?.is_favorite || false);
-                        }}
-                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-amber-500 transition"
-                      >
-                        <Star className={`w-4 h-4 ${app.company?.is_favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Details badges */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
-                      {app.job_type}
-                    </span>
-                    <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      <span>{app.location}</span>
-                    </span>
-                  </div>
-
-                  {app.salary_range && (
-                    <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/5 px-2.5 py-1 rounded-lg w-max">
-                      <Coins className="w-3.5 h-3.5" />
-                      <span>{app.salary_range}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer metrics */}
-                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4 mt-5">
-                  <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Melamar: {new Date(app.applied_date).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
-                  </div>
-                  {getStatusBadge(app.status)}
-                </div>
-              </div>
-            ))}
-          </div>
+                Tambah Lamaran Pertama
+              </button>
+            </div>
+          )
         ) : (
-          <div className="flex flex-col items-center justify-center text-center p-12 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
-            <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Tidak ada lamaran ditemukan</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mt-1">
-              Cobalah untuk mengubah filter pencarian Anda atau tambah lamaran kerja pertama Anda hari ini!
-            </p>
-            <button
-              onClick={openCreateModal}
-              className="mt-6 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 transition"
-            >
-              Tambah Lamaran Pertama
-            </button>
+          /* Kanban Board View */
+          <div className="flex gap-5 overflow-x-auto pb-6 select-none -mx-6 px-6 md:-mx-10 md:px-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+            {[
+              { status: 'Applied', label: 'Applied', color: 'text-blue-600 dark:text-blue-400' },
+              { status: 'Screening', label: 'Screening', color: 'text-indigo-600 dark:text-indigo-400' },
+              { status: 'Technical Test', label: 'Technical Test', color: 'text-pink-600 dark:text-pink-400' },
+              { status: 'Interview', label: 'Interview', color: 'text-amber-600 dark:text-amber-400' },
+              { status: 'HR Interview', label: 'HR Interview', color: 'text-orange-600 dark:text-orange-400' },
+              { status: 'Offered', label: 'Offered', color: 'text-emerald-600 dark:text-emerald-400' },
+              { status: 'Accepted', label: 'Accepted', color: 'text-teal-600 dark:text-teal-400' },
+              { status: 'Rejected', label: 'Rejected', color: 'text-rose-600 dark:text-rose-400' }
+            ].map((col) => {
+              const columnApps = filteredApps.filter(app => app.status === col.status);
+              const isOver = dragOverStatus === col.status;
+
+              return (
+                <div
+                  key={col.status}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dragOverStatus !== col.status) {
+                      setDragOverStatus(col.status as any);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverStatus(null)}
+                  onDrop={() => {
+                    if (draggedId) {
+                      handleMoveStatus(draggedId, col.status as any);
+                    }
+                    setDraggedId(null);
+                    setDragOverStatus(null);
+                  }}
+                  className={`flex-1 min-w-[280px] max-w-[320px] rounded-3xl border p-4 flex flex-col h-[600px] transition-all duration-200 ${
+                    isOver 
+                      ? 'border-blue-500 bg-blue-50/20 dark:bg-blue-950/20 shadow-lg shadow-blue-500/5 scale-[1.01]' 
+                      : 'border-slate-200/60 dark:border-slate-800/80 bg-slate-50/30 dark:bg-slate-900/10'
+                  }`}
+                >
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800/60">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${
+                        col.status === 'Applied' ? 'bg-blue-500' :
+                        col.status === 'Screening' ? 'bg-indigo-500' :
+                        col.status === 'Technical Test' ? 'bg-pink-500' :
+                        col.status === 'Interview' ? 'bg-amber-500' :
+                        col.status === 'HR Interview' ? 'bg-orange-500' :
+                        col.status === 'Offered' ? 'bg-emerald-500' :
+                        col.status === 'Accepted' ? 'bg-teal-500' :
+                        'bg-rose-500'
+                      }`} />
+                      <h4 className="font-bold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">{col.label}</h4>
+                    </div>
+                    <span className="text-[11px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded-full">
+                      {columnApps.length}
+                    </span>
+                  </div>
+
+                  {/* Cards Container */}
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-none">
+                    {columnApps.length > 0 ? (
+                      columnApps.map((app) => (
+                        <div
+                          key={app.id}
+                          draggable
+                          onDragStart={() => setDraggedId(app.id)}
+                          onDragEnd={() => {
+                            setDraggedId(null);
+                            setDragOverStatus(null);
+                          }}
+                          onClick={() => handleViewDetails(app)}
+                          className={`bg-white dark:bg-slate-900 border ${
+                            selectedApp?.id === app.id
+                              ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/10'
+                              : 'border-slate-200/50 dark:border-slate-800/60'
+                          } ${
+                            draggedId === app.id ? 'opacity-40' : ''
+                          } p-4 rounded-2xl shadow-sm hover:shadow transition duration-200 cursor-grab active:cursor-grabbing relative group`}
+                        >
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start gap-2">
+                              <h5 className="font-bold text-xs text-slate-800 dark:text-white line-clamp-2 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                                {app.position}
+                              </h5>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleFavorite(app.company_id, app.company?.is_favorite || false);
+                                }}
+                                className="p-0.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded text-slate-300 hover:text-amber-500 transition shrink-0"
+                              >
+                                <Star className={`w-3.5 h-3.5 ${app.company?.is_favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                              </button>
+                            </div>
+                            
+                            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                              {app.company?.name}
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800/60">
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md">
+                                {app.job_type}
+                              </span>
+                              <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 truncate max-w-[120px]">
+                                {app.location}
+                              </span>
+                            </div>
+
+                            {app.salary_range && (
+                              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/5 px-2 py-0.5 rounded w-max">
+                                {app.salary_range}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="h-full flex items-center justify-center border border-dashed border-slate-200/60 dark:border-slate-800/40 rounded-2xl p-4 text-center">
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500">Tarik kartu ke sini</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 

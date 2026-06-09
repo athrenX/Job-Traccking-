@@ -15,15 +15,14 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    // Read from localStorage or system preference
+    // Read from localStorage, default to 'light'
     const savedTheme = localStorage.getItem('cc_theme') as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     } else {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setTheme(systemTheme);
-      document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+      setTheme('light');
+      document.documentElement.classList.toggle('dark', false);
     }
   }, []);
 

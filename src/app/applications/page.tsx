@@ -1461,7 +1461,7 @@ function ApplicationsPageContent() {
               className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
               onClick={() => setIsFormOpen(false)}
             />
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl shadow-2xl z-50 relative overflow-hidden p-6 md:p-8 animate-scale-up">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl shadow-2xl z-50 relative overflow-y-auto max-h-[90vh] p-6 md:p-8 animate-scale-up">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-blue-600" />

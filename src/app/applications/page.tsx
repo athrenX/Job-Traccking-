@@ -80,6 +80,11 @@ function ApplicationsPageContent() {
   const [uploadType, setUploadType] = useState<'CV' | 'Cover Letter' | 'Certificate'>('CV');
   const [uploadingFile, setUploadingFile] = useState(false);
 
+  // AI Assistant states
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiContent, setAiContent] = useState('');
+  const [aiActionType, setAiActionType] = useState<'cover-letter' | 'interview' | null>(null);
+
   // Fetch initial data
   const fetchData = async () => {
     try {
@@ -104,6 +109,9 @@ function ApplicationsPageContent() {
   // Open detail panel helper
   const handleViewDetails = async (app: Application) => {
     setSelectedApp(app);
+    setAiContent('');
+    setAiActionType(null);
+    setAiLoading(false);
     try {
       const [logsRes, docsRes, intRes] = await Promise.all([
         db.logs.list(app.id),
@@ -350,6 +358,40 @@ function ApplicationsPageContent() {
       setAppDocs(prev => prev.filter(d => d.id !== id));
     } catch (err: any) {
       showToast('Gagal menghapus dokumen: ' + err.message, 'error');
+    }
+  };
+
+  // AI Assistant Helper
+  const handleGenerateAIContent = async (action: 'cover-letter' | 'interview') => {
+    if (!selectedApp) return;
+    try {
+      setAiLoading(true);
+      setAiContent('');
+      setAiActionType(action);
+      
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: selectedApp.company?.name || 'Perusahaan',
+          position: selectedApp.position,
+          notes: selectedApp.notes || '',
+          action,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Terjadi kesalahan saat menghubungi Gemini API');
+      }
+
+      setAiContent(data.result);
+    } catch (err: any) {
+      showToast('AI Gagal: ' + err.message, 'error');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -1029,6 +1071,66 @@ function ApplicationsPageContent() {
                     <p className="text-xs text-slate-400 dark:text-slate-500">Belum ada agenda interview yang dijadwalkan.</p>
                   )}
                 </div>
+              </div>
+
+              {/* AI Assistant Section */}
+              <div className="space-y-4 mb-8 pt-6 border-t border-slate-100 dark:border-slate-800/60">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Sparkles className="w-4.5 h-4.5 text-blue-500 animate-pulse" />
+                    <span>AI Assistant (Gemini)</span>
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleGenerateAIContent('cover-letter')}
+                    disabled={aiLoading}
+                    className="flex-1 py-2 px-3 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Buat Cover Letter</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleGenerateAIContent('interview')}
+                    disabled={aiLoading}
+                    className="flex-1 py-2 px-3 bg-indigo-50 dark:bg-indigo-950/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Persiapan Interview</span>
+                  </button>
+                </div>
+
+                {/* AI Result Container */}
+                {aiLoading && (
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-2.5 py-6">
+                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Menganalisis lamaran dan menulis konten...</p>
+                  </div>
+                )}
+
+                {!aiLoading && aiContent && (
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 relative group animate-fade-in">
+                    <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">
+                        {aiActionType === 'cover-letter' ? 'Draft Surat Lamaran' : 'Panduan Wawancara'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(aiContent);
+                          showToast('Berhasil disalin ke clipboard!', 'success');
+                        }}
+                        className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-bold flex items-center gap-1"
+                      >
+                        Salin Teks
+                      </button>
+                    </div>
+                    <div className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed font-sans whitespace-pre-line max-h-72 overflow-y-auto pr-1">
+                      {aiContent}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -28,6 +28,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const cleanName = (name: string) => {
+    if (!name) return '';
+    return name.split('_')[0].trim();
+  };
+
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Lamaran Saya', path: '/applications', icon: Briefcase },
@@ -75,7 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           />
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-              {user.full_name}
+              {cleanName(user.full_name)}
             </h4>
             <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
               {user.email}
@@ -165,7 +170,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               />
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-                  {user.full_name}
+                  {cleanName(user.full_name)}
                 </h4>
                 <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
               </div>

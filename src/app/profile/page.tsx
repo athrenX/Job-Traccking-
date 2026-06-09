@@ -99,7 +99,9 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <h3 className="font-extrabold text-slate-800 dark:text-white text-lg">{user.full_name}</h3>
+              <h3 className="font-extrabold text-slate-800 dark:text-white text-lg">
+                {user.full_name ? user.full_name.split('_')[0].trim() : ''}
+              </h3>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{user.email}</p>
             </div>
 
